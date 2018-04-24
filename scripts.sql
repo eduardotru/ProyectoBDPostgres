@@ -1,14 +1,13 @@
--- Tipo Person
-create type person_t as (
-    pid integer,
+-- Tabla Person
+create table Person(
+    pid serial primary key,
     firstName character varying(30),
     lastName character varying(30),
     dob date,
-    gender character varying(1)
+    gender character varying(1),
+    created_at timestamp,
+    updated_at timestamp
 );
-
--- Tabla Person
-create table Person of person_t(primary key(pid));
 
 -- Tabla Patient
 create table Patient(
@@ -19,34 +18,32 @@ alter table Patient add primary key(pid);
 -- Tabla Doctor
 create table Doctor(
     specialty character varying[50],
-    yearsExpierience integer,
+    yearsExperience integer,
     salary money not null
 ) inherits(Person);
 alter table Doctor add primary key(pid);
 
--- Tipo Treatment
-create type treatment_t as (
-    tid integer,
+-- Tabla Treatment
+create table Treatment(
+    tid serial primary key,
     duration integer,
     medicaments character varying[50],
     description character varying(100),
     received_by integer,
-    prescribed_by integer
-);
-
--- Tabla Treatment
-create table Treatment of treatment_t(primary key(tid));
-
--- Tipo Area
-create type area_t as (
-    aid integer,
-    name character varying(30),
-    location character varying(30),
-    leaded_by integer
+    prescribed_by integer,
+    created_at timestamp,
+    updated_at timestamp
 );
 
 -- Tabla Area
-create table Area of area_t(primary key(aid));
+create table Area(
+    aid serial primary key,
+    name character varying(30),
+    location character varying(30),
+    leaded_by integer,
+    created_at timestamp,
+    updated_at timestamp
+);
 
 -- Referencias
 alter table Doctor add column works integer references Area (aid);
@@ -57,7 +54,21 @@ alter table Treatment add constraint received_by foreign key(received_by) refere
 
 alter table Treatment add constraint prescribed_by foreign key(prescribed_by) references doctor(pid);
 
+-- Fechas
+alter table Patient alter column created_at SET default now();
+alter table Patient alter column updated_at SET default now();
+
+alter table Doctor alter column created_at SET default now();
+alter table Doctor alter column updated_at SET default now();
+
+alter table Treatment alter column created_at SET default now();
+alter table Treatment alter column updated_at SET default now();
+
+alter table Area alter column created_at SET default now();
+alter table Area alter column updated_at SET default now();
+
 -- Reglas
+
 -- 1.
 create rule "Area_Leader" as
 on update to Area
@@ -90,6 +101,5 @@ do instead select 'Area leader cannot change area without assigning a new area l
 -- 5.
 /*create rule "Doctor_Specialty" as
 on update to Doctor
-
 'General Medicine', 'Traumatology', 'Allergology', 'Radiology',
 'Cardiology', 'Gerontology', 'Obstetrics', 'Pediatrics'*/
