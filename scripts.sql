@@ -1,52 +1,48 @@
--- Tipo Person
-create type person_t as (
+-- Tabla Person
+create table Person(
     pid integer,
     firstName character varying(30),
     lastName character varying(30),
     dob date,
-    gender character varying(1)
+    gender character varying(1),
+    primary key(pid)
 );
-
--- Tabla Person
-create table Person of person_t(primary key(pid));
 
 -- Tabla Patient
 create table Patient(
-    insurancePlan character varying(30)
+    pid integer,
+    insurancePlan character varying(30),
+    primary key(pid)
 ) inherits(Person);
-alter table Patient add primary key(pid);
 
 -- Tabla Doctor
 create table Doctor(
+    pid integer,
     specialty character varying[50],
     yearsExpierience integer,
-    salary money not null
+    salary money not null,
+    primary key(pid)
 ) inherits(Person);
-alter table Doctor add primary key(pid);
 
--- Tipo Treatment
-create type treatment_t as (
+-- Tabla Treatment
+create table Treatment(
     tid integer,
     duration integer,
     medicaments character varying[50],
     description character varying(100),
     received_by integer,
-    prescribed_by integer
-);
-
--- Tabla Treatment
-create table Treatment of treatment_t(primary key(tid));
-
--- Tipo Area
-create type area_t as (
-    aid integer,
-    name character varying(30),
-    location character varying(30),
-    leaded_by integer
+    prescribed_by integer,
+    primary key(tid)
 );
 
 -- Tabla Area
-create table Area of area_t(primary key(aid));
+create table Area(
+    aid integer,
+    name character varying(30),
+    location character varying(30),
+    leaded_by integer,
+    primary key(aid)
+);
 
 -- Referencias
 alter table Doctor add column works integer references Area (aid);
