@@ -28,8 +28,8 @@ create table Treatment(
     duration integer,
     medicaments character varying[50],
     description character varying(100),
-    received_by serial,
-    prescribed_by serial,
+    received_by integer,
+    prescribed_by integer,
     primary key(tid)
 );
 
@@ -38,12 +38,12 @@ create table Area(
     aid serial,
     name character varying(30),
     location character varying(30),
-    leaded_by serial,
+    leaded_by integer,
     primary key(aid)
 );
 
 -- Referencias
-alter table Doctor add column works serial references Area (aid);
+alter table Doctor add column works integer references Area (aid);
 
 alter table Area add constraint leaded_by foreign key(leaded_by) references Doctor(pid);
 
