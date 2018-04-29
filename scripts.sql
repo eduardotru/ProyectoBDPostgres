@@ -73,10 +73,15 @@ where (select works from doctor where pid = new.leaded_by) <> new.aid
 do instead select 'Area leader must work on the area';
 
 -- 2.
-create rule "Doctor_Salary" as
-on update to Doctor
-where new.yearsExperience - 2 >= old.yearsExperience
-do also update Doctor set salary = salary*1.1 where pid = new.pid;
+create function increment_salary(integer) returns integer as
+'update Doctor set salary = salary*1.1 where pid = $1 returning 1;'
+LANGUAGE SQL;
+
+create trigger doctor_salary 
+after update of yearsExperience on doctor
+for each row
+when (old.yearsExperience + 2 <= new.yearsExperience)
+execute procedure increment_salary(new.pid);
 
 -- 3.
 create rule "Patient_Insurance_Insert" as
@@ -96,14 +101,27 @@ where (select leaded_by from area where aid = old.works) = new.pid and old.works
 do instead select 'Area leader cannot change area without assigning a new area leader.';
 
 -- 5.
+
+create function check_specialties(spec character varying[50]) returns boolean as $$
+BEGIN
+        FOR i in 1 .. array_upper(spec, 1)
+        loop
+            if spec[i] not in (select * from specialties) then
+                return false;
+            end if;
+        end loop;
+        return true;
+END;
+$$  LANGUAGE plpgsql;
+
 create rule "Doctor_Specialty_Update" as
 on update to Doctor
-where new.specialty && Array(select * from specialties)
+where not check_specialties(new.specialty)
 do instead select 'Doctor specialty not recognized.';
 
 create rule "Doctor_Specialty_Insert" as
 on insert to Doctor
-where new.specialty && Array(select * from specialties)
+where not check_specialties(new.specialty)
 do instead select 'Doctor specialty not recognized.';
 
 create rule "Hospital_Area_Update" as
@@ -148,3 +166,18 @@ on update to Treatment
 where (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) not in ('General Medicine', 'Obstetrics', 'Pediatrics')
 do instead select 'Premium insurance does not cover radiology treatment.';
 
+
+
+INSERT INTO patient (firstname, lastname, dob, gender, insuranceplan) 
+VALUES ('Lizzie', 'Canamar', '1996-12-26', 'F','Basic'),
+('Astrid', 'Carrillo', '1999-09-12', 'F','Unlimited'),
+('Dulce', 'Martínez', '1996-04-02', 'F','Premium'),
+('Aurora', 'Vega', '1992-10-19', 'F','Basic'),
+('Samantha', 'Solis', '1997-06-30', 'F','Premium');
+
+INSERT INTO doctor (firstname, lastname, dob, gender, specialty, yearsExperience, salary) 
+VALUES ('Josue', 'Rodriguez', '1976-12-06', 'M','{General Medicine, Radiology}','15','25000'),
+('Melissa', 'Carrillo', '1989-12-16', 'F','{General Medicine, Obstetrics}','4','15000'),
+('Fatima', 'Carrillo', '1987-02-28', 'F','{Traumatology, Radiology}','6','20000'),
+('Guadalupe', 'Salazar', '1972-10-19', 'M','{Allergology, Pediatrics}','20','60000'),
+('Ricardo', 'Sevilla', '1970-06-01', 'M','{Gerontology, Cardiology}','22','55000');
