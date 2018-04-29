@@ -135,14 +135,14 @@ where new.name not in (select * from specialties)
 do instead select 'Area name not recognized.';
 
 -- 6.
-create rule "Doctor_Works_Specialty_Update" as
+create or replace rule "Doctor_Works_Specialty_Update" as
 on update to Doctor
-where (select name from area where aid = new.works) <> Any(new.specialty)
+where not (select name from area where aid = new.works) = Any(new.specialty)
 do instead select 'Doctor cannot work in an area that is not his specialty';
 
-create rule "Doctor_Works_Specialty_Insert" as
+create or replace rule "Doctor_Works_Specialty_Insert" as
 on insert to Doctor
-where (select name from area where aid = new.works) <> Any(new.specialty)
+where not (select name from area where aid = new.works) = Any(new.specialty)
 do instead select 'Doctor cannot work in an area that is not his specialty';
 
 -- 7.
