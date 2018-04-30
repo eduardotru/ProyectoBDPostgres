@@ -73,15 +73,22 @@ where (select works from doctor where pid = new.leaded_by) <> new.aid
 do instead select 'Area leader must work on the area';
 
 -- 2.
-create function increment_salary(integer) returns integer as
+/*create function increment_salary(integer) returns integer as
 'update Doctor set salary = salary*1.1 where pid = $1 returning 1;'
-LANGUAGE SQL;
+LANGUAGE SQL;*/
+
+Create Procedure increment_salary
+    (@doctorID int)
+As
+Begin
+    update Doctor set salary = salary*1.1 where pid = @doctorID;
+End
 
 create trigger doctor_salary 
 after update of yearsExperience on doctor
 for each row
 when (old.yearsExperience + 2 <= new.yearsExperience)
-execute procedure increment_salary(new.pid);
+execute procedure increment_salary new.pid;
 
 -- 3. Finished
 create rule "Patient_Insurance_Insert" as
