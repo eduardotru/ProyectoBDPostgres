@@ -66,7 +66,7 @@ insert into specialties values('Obstetrics');
 insert into specialties values('Pediatrics');
 
 -- Reglas
--- 1.
+-- 1. Finished
 create rule "Area_Leader" as
 on update to Area
 where (select works from doctor where pid = new.leaded_by) <> new.aid
@@ -83,7 +83,7 @@ for each row
 when (old.yearsExperience + 2 <= new.yearsExperience)
 execute procedure increment_salary(new.pid);
 
--- 3.
+-- 3. Finished
 create rule "Patient_Insurance_Insert" as
 on insert to Patient
 where new.insurancePlan not in ('Unlimited', 'Premium', 'Basic')
@@ -94,13 +94,13 @@ on update to Patient
 where new.insurancePlan not in ('Unlimited', 'Premium', 'Basic')
 do instead select 'Cannot update patient. Insurance plan must be Unlimited, Premium or Basic';
 
--- 4.
+-- 4. Finished
 create rule "Doctor_Area" as
 on update to Doctor
 where (select leaded_by from area where aid = old.works) = new.pid and old.works <> new.works
 do instead select 'Area leader cannot change area without assigning a new area leader.';
 
--- 5.
+-- 5. Finished
 
 create function check_specialties(spec character varying[50]) returns boolean as $$
 BEGIN
@@ -134,7 +134,7 @@ on insert to Area
 where new.name not in (select * from specialties)
 do instead select 'Area name not recognized.';
 
--- 6.
+-- 6. Finished
 create or replace rule "Doctor_Works_Specialty_Update" as
 on update to Doctor
 where not (select name from area where aid = new.works) = Any(new.specialty)
@@ -145,7 +145,7 @@ on insert to Doctor
 where not (select name from area where aid = new.works) = Any(new.specialty)
 do instead select 'Doctor cannot work in an area that is not his specialty';
 
--- 7.
+-- 7. Finished
 create rule "Premium_Insurance_Insert" as
 on insert to Treatment
 where (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) = 'Radiology'
@@ -159,12 +159,12 @@ do instead select 'Premium insurance does not cover radiology treatment.';
 create rule "Basic_Insurance_Insert" as
 on insert to Treatment
 where (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) not in ('General Medicine', 'Obstetrics', 'Pediatrics')
-do instead select 'Premium insurance does not cover radiology treatment.';
+do instead select 'Basic insurance does not cover this treatment.';
 
 create rule "Basic_Insurance_Update" as
 on update to Treatment
 where (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) not in ('General Medicine', 'Obstetrics', 'Pediatrics')
-do instead select 'Premium insurance does not cover radiology treatment.';
+do instead select 'Basic insurance does not cover this treatment.';
 
 
 
