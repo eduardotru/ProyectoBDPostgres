@@ -187,4 +187,17 @@ VALUES ('Josue', 'Rodriguez', '1976-12-06', 'M','{General Medicine, Radiology}',
 ('Melissa', 'Carrillo', '1989-12-16', 'F','{General Medicine, Obstetrics}','4','15000'),
 ('Fatima', 'Carrillo', '1987-02-28', 'F','{Traumatology, Radiology}','6','20000'),
 ('Guadalupe', 'Salazar', '1972-10-19', 'M','{Allergology, Pediatrics}','20','60000'),
-('Ricardo', 'Sevilla', '1970-06-01', 'M','{Gerontology, Cardiology}','22','55000');
+('Ricardo', 'Sevilla', '1970-06-01', 'M','{Gerontology, Cardiology}','22','55000'),
+('Tamara', 'Cavazos', '1982-09-20', 'F','{Radiology, Pediatrics}','6','60000'),
+('Guillermo', 'Cavazos', '1979-06-27', 'F','{Gerontology, Traumatology}','8','70000'),
+('Esther', 'Salinas', '1970-05-15', 'F','{Obstetrics, Pediatrics}','18','90000');
+
+INSERT INTO area (name, location, leaded_by)
+VALUES ('General Medicine','Area 1', '6'),
+('Obstetrics','Area 1', '7'),
+('Traumatology','Area 1', '8'),
+('Allergology','Area 1', '9'),
+('Radiology','Area 1', '11'),
+('Cardiology','Area 1', '10'),
+('Gerontology','Area 1', '12'),
+('Pediatrics','Area 1', '13');  
