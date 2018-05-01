@@ -69,7 +69,7 @@ insert into specialties values('Pediatrics');
 -- 1. Finished
 create rule "Area_Leader" as
 on update to Area
-where (select works from doctor where pid = new.leaded_by) <> new.aid
+where (select works from doctor where pid = new.leaded_by) <> new.aid or (select works from doctor where pid = new.leaded_by) is null
 do instead select 'Area leader must work on the area';
 
 -- 2.
