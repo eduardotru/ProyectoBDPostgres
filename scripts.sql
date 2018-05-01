@@ -205,26 +205,56 @@ on update to Treatment
 where (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) not in ('General Medicine', 'Obstetrics', 'Pediatrics')
 do instead select 'Basic insurance does not cover this treatment.';
 
-
 INSERT INTO patient (firstname, lastname, dob, gender, insuranceplan) 
 VALUES ('Lizzie', 'Canamar', '1996-12-26', 'F','Basic'),
-('Astrid', 'Carrillo', '1999-09-12', 'F','Unlimited'),
-('Dulce', 'Martínez', '1996-04-02', 'F','Premium'),
+('Astrid', 'Carrillo', '1999-09-12', 'F','Premium'),
+('Dulce', 'Martínez', '1996-04-02', 'F','Unlimited'),
 ('Aurora', 'Vega', '1992-10-19', 'F','Basic'),
-('Samantha', 'Solis', '1997-06-30', 'F','Premium');
+('Samantha', 'Solis', '1997-06-30', 'F','Premium'),
+('Zaid', 'Solis', '1998-07-29', 'M','Unlimited'),
+('Cecilia', 'Ramos', '1995-01-04', 'F','Unlimited'),
+('Carlos', 'Reynosa', '1999-04-14', 'M','Unlimited'),
+('Oralia', 'Cardenas', '1979-11-24', 'F','Basic'),
+('Guadalupe', 'Cardenas', '1978-05-10', 'F','Basic'),
+('Nancy', 'Salazar', '1988-09-15', 'F','Basic');
+
+INSERT INTO area (name, location)
+VALUES ('General Medicine','Area 1'),
+('Obstetrics','Area 1'),
+('Traumatology','Area 1'),
+('Allergology','Area 1'),
+('Radiology','Area 1'),
+('Cardiology','Area 1'),
+('Gerontology','Area 1'),
+('Pediatrics','Area 1');  
 
 INSERT INTO doctor (firstname, lastname, dob, gender, specialty, yearsExperience, salary) 
-VALUES ('Josue', 'Rodriguez', '1976-12-06', 'M','{General Medicine, Radiology}','15','25000'),
+VALUES ('Josue', 'Rodriguez', '1976-12-06', 'M','{General Medicine, Traumotology}','15','25000'),
 ('Melissa', 'Carrillo', '1989-12-16', 'F','{General Medicine, Obstetrics}','4','15000'),
 ('Fatima', 'Carrillo', '1987-02-28', 'F','{Traumatology, Radiology}','6','20000'),
 ('Guadalupe', 'Salazar', '1972-10-19', 'M','{Allergology, Pediatrics}','20','60000'),
-('Ricardo', 'Sevilla', '1970-06-01', 'M','{Gerontology, Cardiology}','22','55000'),
-('Tamara', 'Cavazos', '1982-09-20', 'F','{Radiology, Pediatrics}','6','60000'),
+('Ricardo', 'Sevilla', '1970-06-01', 'M','{Gerontology, Radiology}','22','55000'),
+('Tamara', 'Cavazos', '1982-09-20', 'F','{Cardiology, Pediatrics}','6','60000'),
 ('Guillermo', 'Cavazos', '1979-06-27', 'F','{Gerontology, Traumatology}','8','70000'),
 ('Esther', 'Salinas', '1970-05-15', 'F','{Obstetrics, Pediatrics}','18','90000');
 
-INSERT INTO area (name, location, leaded_by)
-VALUES ('General Medicine','Area 1', '6'),
+UPDATE doctor SET works = '1' WHERE pid = '12';
+UPDATE doctor SET works = '2' WHERE pid = '13';
+UPDATE doctor SET works = '3' WHERE pid = '14';
+UPDATE doctor SET works = '4' WHERE pid = '15';
+UPDATE doctor SET works = '5' WHERE pid = '16';
+UPDATE doctor SET works = '6' WHERE pid = '17';
+UPDATE doctor SET works = '7' WHERE pid = '18';
+UPDATE doctor SET works = '8' WHERE pid = '19';
+
+
+INSERT INTO treatment (duration, medicaments, description, received_by, prescribed_by)
+VALUES ('7', '{Amoxicilin, Ibuprofen}','Cada 8 hrs por 7 días','2','12'),
+('3', '{Loratadine, Ibuprofen}','Cada 5 hrs por 3 días','3','15'),
+('10', '{Loratadine, Ibuprofen}','Cada 5 hrs por 3 días','4','13');
+
+/*INSERT INTO area (name, location, leaded_by)
+VALUES ('General Medicine','Area 1', '12');
 ('Obstetrics','Area 1', '7'),
 ('Traumatology','Area 1', '8'),
 ('Allergology','Area 1', '9'),
@@ -232,3 +262,8 @@ VALUES ('General Medicine','Area 1', '6'),
 ('Cardiology','Area 1', '10'),
 ('Gerontology','Area 1', '12'),
 ('Pediatrics','Area 1', '13');  
+--Insert no valido
+INSERT INTO treatment (duration, medicaments, description, received_by, prescribed_by)
+VALUES ('7', '{Amoxicilin, Ibuprofen}','Cada 8 hrs por 7 días','9','18');
+*/
+
