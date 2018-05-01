@@ -65,6 +65,19 @@ insert into specialties values('Gerontology');
 insert into specialties values('Obstetrics');
 insert into specialties values('Pediatrics');
 
+--Reglas con trigger
+
+create or replace function do_nothing() 
+returns trigger language plpgsql as $$ begin   
+    return null; 
+end $$;  
+
+--3. 
+create trigger "Patient_Insurance_Insert" 
+before insert or update on Patient FOR EACH 
+ROW WHEN (NEW.insurancePlan not in ('Unlimited', 'Premium', 'Basic')) 
+execute procedure do_nothing();
+
 -- Reglas
 -- 1. Finished
 create rule "Area_Leader" as
@@ -90,7 +103,7 @@ for each row
 when (old.yearsExperience + 2 <= new.yearsExperience)
 execute procedure increment_salary new.pid;
 
--- 3. Finished
+/*-- 3. Finished
 create rule "Patient_Insurance_Insert" as
 on insert to Patient
 where new.insurancePlan not in ('Unlimited', 'Premium', 'Basic')
@@ -99,7 +112,7 @@ do instead select 'Cannot add patient. Insurance plan must be Unlimited, Premium
 create rule "Patient_Insurance_Update" as
 on update to Patient
 where new.insurancePlan not in ('Unlimited', 'Premium', 'Basic')
-do instead select 'Cannot update patient. Insurance plan must be Unlimited, Premium or Basic';
+do instead select 'Cannot update patient. Insurance plan must be Unlimited, Premium or Basic';*/
 
 -- 4. Finished
 create rule "Doctor_Area" as
