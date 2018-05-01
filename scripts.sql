@@ -16,7 +16,7 @@ create table Patient(
 
 -- Tabla Doctor
 create table Doctor(
-    specialty character varying[50],
+    specialty varchar(30) ARRAY[8],
     yearsExperience integer,
     salary money not null,
     primary key(pid)
@@ -26,7 +26,7 @@ create table Doctor(
 create table Treatment(
     tid serial,
     duration integer,
-    medicaments character varying[50],
+    medicaments varchar(30) ARRAY[4],
     description character varying(100),
     received_by integer,
     prescribed_by integer,
@@ -136,7 +136,6 @@ where (select leaded_by from area where aid = old.works) = new.pid and old.works
 do instead select 'Area leader cannot change area without assigning a new area leader.';
 
 -- 5. Finished
-
 create function check_specialties() returns trigger as $$
 BEGIN
         FOR i in 1 .. array_upper(new.specialty, 1)
@@ -229,14 +228,14 @@ VALUES ('General Medicine','Area 1'),
 ('Pediatrics','Area 1');  
 
 INSERT INTO doctor (firstname, lastname, dob, gender, specialty, yearsExperience, salary) 
-VALUES ('Josue', 'Rodriguez', '1976-12-06', 'M','{General Medicine, Traumotology}','15','25000'),
-('Melissa', 'Carrillo', '1989-12-16', 'F','{General Medicine, Obstetrics}','4','15000'),
-('Fatima', 'Carrillo', '1987-02-28', 'F','{Traumatology, Radiology}','6','20000'),
-('Guadalupe', 'Salazar', '1972-10-19', 'M','{Allergology, Pediatrics}','20','60000'),
-('Ricardo', 'Sevilla', '1970-06-01', 'M','{Gerontology, Radiology}','22','55000'),
-('Tamara', 'Cavazos', '1982-09-20', 'F','{Cardiology, Pediatrics}','6','60000'),
-('Guillermo', 'Cavazos', '1979-06-27', 'F','{Gerontology, Traumatology}','8','70000'),
-('Esther', 'Salinas', '1970-05-15', 'F','{Obstetrics, Pediatrics}','18','90000');
+VALUES ('Josue', 'Rodriguez', '1976-12-06', 'M','{"General Medicine", "Traumatology"}','15','25000'),
+('Melissa', 'Carrillo', '1989-12-16', 'F','{"General Medicine", "Obstetrics"}','4','15000'),
+('Fatima', 'Carrillo', '1987-02-28', 'F','{"Traumatology", "Radiology"}','6','20000'),
+('Guadalupe', 'Salazar', '1972-10-19', 'M','{"Allergology", "Pediatrics"}','20','60000'),
+('Ricardo', 'Sevilla', '1970-06-01', 'M','{"Gerontology", "Radiology"}','22','55000'),
+('Tamara', 'Cavazos', '1982-09-20', 'F','{"Cardiology", "Pediatrics"}','6','60000'),
+('Guillermo', 'Cavazos', '1979-06-27', 'F','{"Gerontology", "Traumatology"}','8','70000'),
+('Esther', 'Salinas', '1970-05-15', 'F','{"Obstetrics", "Pediatrics"}','18','90000');
 
 UPDATE doctor SET works = '1' WHERE pid = '12';
 UPDATE doctor SET works = '2' WHERE pid = '13';
@@ -249,9 +248,8 @@ UPDATE doctor SET works = '8' WHERE pid = '19';
 
 
 INSERT INTO treatment (duration, medicaments, description, received_by, prescribed_by)
-VALUES ('7', '{Amoxicilin, Ibuprofen}','Cada 8 hrs por 7 días','2','12'),
-('3', '{Loratadine, Ibuprofen}','Cada 5 hrs por 3 días','3','15'),
-('10', '{Loratadine, Ibuprofen}','Cada 5 hrs por 3 días','4','13');
+VALUES ('7', '{"Amoxicilin", "Ibuprofen"}','Cada 8 hrs por 7 días','2','12'),
+('10', '{"Loratadine", "Ibuprofen"}','Cada 5 hrs por 3 días','4','13');
 
 /*INSERT INTO area (name, location, leaded_by)
 VALUES ('General Medicine','Area 1', '12');
