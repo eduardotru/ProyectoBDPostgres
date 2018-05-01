@@ -127,48 +127,52 @@ do instead select 'Area leader cannot change area without assigning a new area l
 
 -- 5. Finished
 
-create function check_specialties(spec character varying[50]) returns boolean as $$
+create function check_specialties() returns trigger as $$
 BEGIN
-        FOR i in 1 .. array_upper(spec, 1)
+        FOR i in 1 .. array_upper(new.specialty, 1)
         loop
-            if spec[i] not in (select * from specialties) then
-                return false;
+            if new.specialty[i] not in (select * from specialties) then
+                raise exception 'Doctor specialty not recognized.';
             end if;
         end loop;
-        return true;
+        return new;
 END;
 $$  LANGUAGE plpgsql;
 
-create rule "Doctor_Specialty_Update" as
-on update to Doctor
-where not check_specialties(new.specialty)
-do instead select 'Doctor specialty not recognized.';
+create trigger Doctor_Specialty_Update
+before update or insert on Doctor
+for each row
+execute procedure check_specialties();
 
-create rule "Doctor_Specialty_Insert" as
-on insert to Doctor
-where not check_specialties(new.specialty)
-do instead select 'Doctor specialty not recognized.';
+create function check_area() returns trigger as $$
+BEGIN
+        if new.name not in (select * from specialties) then
+            raise exception 'Area name not recognized.';
+        end if;
+        return new;
+END;
+$$  LANGUAGE plpgsql;
 
-create rule "Hospital_Area_Update" as
-on update to Area
-where new.name not in (select * from specialties)
-do instead select 'Area name not recognized.';
-
-create rule "Hospital_Area_Insert" as
-on insert to Area
-where new.name not in (select * from specialties)
-do instead select 'Area name not recognized.';
+create trigger Hospital_Area
+before update or insert on Area
+for each row
+execute procedure check_area();
 
 -- 6. Finished
-create or replace rule "Doctor_Works_Specialty_Update" as
-on update to Doctor
-where not (select name from area where aid = new.works) = Any(new.specialty)
-do instead select 'Doctor cannot work in an area that is not his specialty';
 
-create or replace rule "Doctor_Works_Specialty_Insert" as
-on insert to Doctor
-where not (select name from area where aid = new.works) = Any(new.specialty)
-do instead select 'Doctor cannot work in an area that is not his specialty';
+create function check_works_specialty() returns trigger as $$
+BEGIN
+        if not (select name from area where aid = new.works) = Any(new.specialty) then
+            raise exception 'Doctor cannot work in an area that is not his specialty';
+        end if;
+        return new;
+END;
+$$  LANGUAGE plpgsql;
+
+create trigger Doctor_Works_Specialty
+before update or insert on Doctor
+for each row
+execute procedure check_works_specialty();
 
 -- 7. Finished
 create rule "Premium_Insurance_Insert" as
