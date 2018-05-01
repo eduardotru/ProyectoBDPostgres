@@ -65,6 +65,19 @@ insert into specialties values('Gerontology');
 insert into specialties values('Obstetrics');
 insert into specialties values('Pediatrics');
 
+--Reglas con trigger
+
+create or replace function do_nothing() 
+returns trigger language plpgsql as $$ begin   
+    return null; 
+end $$;  
+
+--3. 
+create trigger "Patient_Insurance_Insert" 
+before insert or update on Patient FOR EACH 
+ROW WHEN (NEW.insurancePlan not in ('Unlimited', 'Premium', 'Basic')) 
+execute procedure do_nothing();
+
 -- Reglas
 -- 1. Finished
 create or replace rule "Area_Leader_Update" as
@@ -78,17 +91,24 @@ where (select works from doctor where pid = new.leaded_by) <> new.aid or (select
 do instead select 'Area leader must work on the area';
 
 -- 2.
-create function increment_salary(integer) returns integer as
+/*create function increment_salary(integer) returns integer as
 'update Doctor set salary = salary*1.1 where pid = $1 returning 1;'
-LANGUAGE SQL;
+LANGUAGE SQL;*/
+
+Create Procedure increment_salary
+    (@doctorID int)
+As
+Begin
+    update Doctor set salary = salary*1.1 where pid = @doctorID;
+End
 
 create trigger doctor_salary 
 after update of yearsExperience on doctor
 for each row
 when (old.yearsExperience + 2 <= new.yearsExperience)
-execute procedure increment_salary(new.pid);
+execute procedure increment_salary new.pid;
 
--- 3. Finished
+/*-- 3. Finished
 create rule "Patient_Insurance_Insert" as
 on insert to Patient
 where new.insurancePlan not in ('Unlimited', 'Premium', 'Basic')
@@ -97,7 +117,7 @@ do instead select 'Cannot add patient. Insurance plan must be Unlimited, Premium
 create rule "Patient_Insurance_Update" as
 on update to Patient
 where new.insurancePlan not in ('Unlimited', 'Premium', 'Basic')
-do instead select 'Cannot update patient. Insurance plan must be Unlimited, Premium or Basic';
+do instead select 'Cannot update patient. Insurance plan must be Unlimited, Premium or Basic';*/
 
 -- 4. Finished
 create rule "Doctor_Area" as
@@ -185,4 +205,17 @@ VALUES ('Josue', 'Rodriguez', '1976-12-06', 'M','{General Medicine, Radiology}',
 ('Melissa', 'Carrillo', '1989-12-16', 'F','{General Medicine, Obstetrics}','4','15000'),
 ('Fatima', 'Carrillo', '1987-02-28', 'F','{Traumatology, Radiology}','6','20000'),
 ('Guadalupe', 'Salazar', '1972-10-19', 'M','{Allergology, Pediatrics}','20','60000'),
-('Ricardo', 'Sevilla', '1970-06-01', 'M','{Gerontology, Cardiology}','22','55000');
+('Ricardo', 'Sevilla', '1970-06-01', 'M','{Gerontology, Cardiology}','22','55000'),
+('Tamara', 'Cavazos', '1982-09-20', 'F','{Radiology, Pediatrics}','6','60000'),
+('Guillermo', 'Cavazos', '1979-06-27', 'F','{Gerontology, Traumatology}','8','70000'),
+('Esther', 'Salinas', '1970-05-15', 'F','{Obstetrics, Pediatrics}','18','90000');
+
+INSERT INTO area (name, location, leaded_by)
+VALUES ('General Medicine','Area 1', '6'),
+('Obstetrics','Area 1', '7'),
+('Traumatology','Area 1', '8'),
+('Allergology','Area 1', '9'),
+('Radiology','Area 1', '11'),
+('Cardiology','Area 1', '10'),
+('Gerontology','Area 1', '12'),
+('Pediatrics','Area 1', '13');  
