@@ -78,45 +78,56 @@ ROW WHEN (NEW.insurancePlan not in ('Unlimited', 'Premium', 'Basic'))
 execute procedure do_nothing();*/
 
 -- Reglas
--- 1. Finished
-create or replace rule "Area_Leader_Update" as
-on update to Area
-where (select works from doctor where pid = new.leaded_by) <> new.aid or (select works from doctor where pid = new.leaded_by) is null
-do instead select 'Area leader must work on the area';
 
-create or replace rule "Area_Leader_Insert" as
-on insert to Area
-where (select works from doctor where pid = new.leaded_by) <> new.aid or (select works from doctor where pid = new.leaded_by) is null
-do instead select 'Area leader must work on the area';
+-- 1. A doctor can be leader only of the Area he/she works on.
+create function area_leader() 
+returns trigger as $$ 
+begin   
+    if exists (select * from doctor where pid = new.leaded_by AND doctor.works != new.aid)
+        then
+        RAISE EXCEPTION 'Area leader must work on the area';
+        return null; 
+    end if; 
+    return new;
+end; $$  
+LANGUAGE plpgsql;
 
--- 2.
-/*create function increment_salary(integer) returns integer as
-'update Doctor set salary = salary*1.1 where pid = $1 returning 1;'
-LANGUAGE SQL;*/
+create trigger Area_Leader_Update
+before insert or update on Area
+for each row 
+execute procedure area_leader();
 
-Create Procedure increment_salary
-    (@doctorID int)
-As
-Begin
-    update Doctor set salary = salary*1.1 where pid = @doctorID;
-End
+-- 2.When doctor accumulates 2 yrs of experience, receives a salary increment of 10%
+create function increment_salary() 
+returns trigger as $$
+begin
+    if (old.yearsExperience + 2 <= new.yearsExperience)
+    then
+        new.salary = old.salary * 1.1;
+    end if;
+    return new;
+end; $$
+LANGUAGE plpgsql;
 
 create trigger doctor_salary 
-after update of yearsExperience on doctor
+before update on doctor
 for each row
-when (old.yearsExperience + 2 <= new.yearsExperience)
-execute procedure increment_salary new.pid;
+execute procedure increment_salary();
 
 -- 3. Finished
-create rule "Patient_Insurance_Insert" as
-on insert to Patient
-where new.insurancePlan not in ('Unlimited', 'Premium', 'Basic')
-do instead select 'Cannot add patient. Insurance plan must be Unlimited, Premium or Basic';
 
-create rule "Patient_Insurance_Update" as
-on update to Patient
-where new.insurancePlan not in ('Unlimited', 'Premium', 'Basic')
-do instead select 'Cannot update patient. Insurance plan must be Unlimited, Premium or Basic';
+create function patient_Insurance() 
+returns trigger as $$ 
+begin
+    RAISE EXCEPTION 'Insurance plan must be Unlimited, Premium or Basic';
+    return null; 
+end; $$  
+LANGUAGE plpgsql;
+
+create trigger "Patient_Insurance_Insert" 
+before insert or update on Patient FOR EACH 
+ROW WHEN (NEW.insurancePlan not in ('Unlimited', 'Premium', 'Basic')) 
+execute procedure patient_Insurance();
 
 -- 4. Finished
 create rule "Doctor_Area" as
