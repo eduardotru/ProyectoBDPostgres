@@ -67,38 +67,38 @@ insert into specialties values('Pediatrics');
 
 /*--Reglas con trigger
 
-create or replace function do_nothing() 
-returns trigger language plpgsql as $$ begin   
-    return null; 
-end $$;  
---3. 
-create trigger "Patient_Insurance_Insert" 
-before insert or update on Patient FOR EACH 
-ROW WHEN (NEW.insurancePlan not in ('Unlimited', 'Premium', 'Basic')) 
+create or replace function do_nothing()
+returns trigger language plpgsql as $$ begin
+    return null;
+end $$;
+--3.
+create trigger "Patient_Insurance_Insert"
+before insert or update on Patient FOR EACH
+ROW WHEN (NEW.insurancePlan not in ('Unlimited', 'Premium', 'Basic'))
 execute procedure do_nothing();*/
 
 -- Reglas
 
 -- 1. A doctor can be leader only of the Area he/she works on.
-create function area_leader() 
-returns trigger as $$ 
-begin   
+create function area_leader()
+returns trigger as $$
+begin
     if exists (select * from doctor where pid = new.leaded_by AND doctor.works != new.aid)
         then
         RAISE EXCEPTION 'Area leader must work on the area';
-        return null; 
-    end if; 
+        return null;
+    end if;
     return new;
-end; $$  
+end; $$
 LANGUAGE plpgsql;
 
 create trigger Area_Leader_Update
 before insert or update on Area
-for each row 
+for each row
 execute procedure area_leader();
 
 -- 2.When doctor accumulates 2 yrs of experience, receives a salary increment of 10%
-create function increment_salary() 
+create function increment_salary()
 returns trigger as $$
 begin
     if (old.yearsExperience + 2 <= new.yearsExperience)
@@ -109,41 +109,41 @@ begin
 end; $$
 LANGUAGE plpgsql;
 
-create trigger doctor_salary 
+create trigger doctor_salary
 before update on doctor
 for each row
 execute procedure increment_salary();
 
 -- 3. Finished
 
-create function patient_Insurance() 
-returns trigger as $$ 
+create function patient_Insurance()
+returns trigger as $$
 begin
     RAISE EXCEPTION 'Insurance plan must be Unlimited, Premium or Basic';
-    return null; 
-end; $$  
+    return null;
+end; $$
 LANGUAGE plpgsql;
 
-create trigger "Patient_Insurance_Insert" 
-before insert or update on Patient FOR EACH 
-ROW WHEN (NEW.insurancePlan not in ('Unlimited', 'Premium', 'Basic')) 
+create trigger "Patient_Insurance_Insert"
+before insert or update on Patient FOR EACH
+ROW WHEN (NEW.insurancePlan not in ('Unlimited', 'Premium', 'Basic'))
 execute procedure patient_Insurance();
 
 -- 4. Finished
-create function doctor_area() 
-returns trigger as $$ 
-begin   
+create function doctor_area()
+returns trigger as $$
+begin
     if ((select leaded_by from area where aid = old.works) = new.pid and old.works <> new.works)
         then
         RAISE EXCEPTION 'Area leader cannot change area without assigning a new area leader.';
-        return null; 
-    end if; 
+        return null;
+    end if;
     return new;
-end; $$  
+end; $$
 LANGUAGE plpgsql;
 
 create trigger "Doctor_Area"
-before update on Doctor 
+before update on Doctor
 FOR EACH ROW
 execute procedure doctor_area();
 
@@ -197,27 +197,37 @@ for each row
 execute procedure check_works_specialty();
 
 -- 7. Finished
-create rule "Premium_Insurance_Insert" as
-on insert to Treatment
-where (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) = 'Radiology'
-do instead select 'Premium insurance does not cover radiology treatment.';
+create function check_premium_insurance() returns trigger as $$
+BEGIN
+        if (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid)  = 'Radiology' then
+            raise exception 'Premium insurance does not cover radiology treatment.';
+        end if;
+        return new;
+END;
+$$  LANGUAGE plpgsql;
 
-create rule "Premium_Insurance_Update" as
-on update to Treatment
-where (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) = 'Radiology'
-do instead select 'Premium insurance does not cover radiology treatment.';
+create trigger Premium_Insurance
+before update or insert on Treatment
+for each row
+execute procedure check_premium_insurance();
 
-create rule "Basic_Insurance_Insert" as
-on insert to Treatment
-where (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) not in ('General Medicine', 'Obstetrics', 'Pediatrics')
-do instead select 'Basic insurance does not cover this treatment.';
 
-create rule "Basic_Insurance_Update" as
-on update to Treatment
-where (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) not in ('General Medicine', 'Obstetrics', 'Pediatrics')
-do instead select 'Basic insurance does not cover this treatment.';
 
-INSERT INTO patient (firstname, lastname, dob, gender, insuranceplan) 
+create function check_basic_insurance() returns trigger as $$
+BEGIN
+        if (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) not in ('General Medicine', 'Obstetrics', 'Pediatrics') then
+            raise exception 'Basic insurance does not cover this treatment.';
+        end if;
+        return new;
+END;
+$$  LANGUAGE plpgsql;
+
+create trigger Basic_Insurance
+before update or insert on Treatment
+for each row
+execute procedure  check_basic_insurance();
+
+INSERT INTO patient (firstname, lastname, dob, gender, insuranceplan)
 VALUES ('Lizzie', 'Canamar', '1996-12-26', 'F','Basic'),
 ('Astrid', 'Carrillo', '1999-09-12', 'F','Premium'),
 ('Dulce', 'Martínez', '1996-04-02', 'F','Unlimited'),
@@ -238,9 +248,9 @@ VALUES ('General Medicine','Area 1'),
 ('Radiology','Area 1'),
 ('Cardiology','Area 1'),
 ('Gerontology','Area 1'),
-('Pediatrics','Area 1');  
+('Pediatrics','Area 1');
 
-INSERT INTO doctor (firstname, lastname, dob, gender, specialty, yearsExperience, salary) 
+INSERT INTO doctor (firstname, lastname, dob, gender, specialty, yearsExperience, salary)
 VALUES ('Josue', 'Rodriguez', '1976-12-06', 'M','{"General Medicine", "Traumatology"}','15','25000'),
 ('Melissa', 'Carrillo', '1989-12-16', 'F','{"General Medicine", "Obstetrics"}','4','15000'),
 ('Fatima', 'Carrillo', '1987-02-28', 'F','{"Traumatology", "Radiology"}','6','20000'),
@@ -272,9 +282,8 @@ VALUES ('General Medicine','Area 1', '12');
 ('Radiology','Area 1', '11'),
 ('Cardiology','Area 1', '10'),
 ('Gerontology','Area 1', '12'),
-('Pediatrics','Area 1', '13');  
+('Pediatrics','Area 1', '13');
 --Insert no valido
 INSERT INTO treatment (duration, medicaments, description, received_by, prescribed_by)
 VALUES ('7', '{Amoxicilin, Ibuprofen}','Cada 8 hrs por 7 días','9','18');
 */
-
