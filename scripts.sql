@@ -65,18 +65,6 @@ insert into specialties values('Gerontology');
 insert into specialties values('Obstetrics');
 insert into specialties values('Pediatrics');
 
-/*--Reglas con trigger
-
-create or replace function do_nothing()
-returns trigger language plpgsql as $$ begin
-    return null;
-end $$;
---3.
-create trigger "Patient_Insurance_Insert"
-before insert or update on Patient FOR EACH
-ROW WHEN (NEW.insurancePlan not in ('Unlimited', 'Premium', 'Basic'))
-execute procedure do_nothing();*/
-
 -- Reglas
 
 -- 1. A doctor can be leader only of the Area he/she works on.
@@ -258,8 +246,12 @@ VALUES ('Josue', 'Rodriguez', '1976-12-06', 'M','{"General Medicine", "Traumatol
 ('Ricardo', 'Sevilla', '1970-06-01', 'M','{"Gerontology", "Radiology"}','22','55000'),
 ('Tamara', 'Cavazos', '1982-09-20', 'F','{"Cardiology", "Pediatrics"}','6','60000'),
 ('Guillermo', 'Cavazos', '1979-06-27', 'F','{"Gerontology", "Traumatology"}','8','70000'),
-('Esther', 'Salinas', '1970-05-15', 'F','{"Obstetrics", "Pediatrics"}','18','90000');
+('Esther', 'Salinas', '1970-05-15', 'F','{"Obstetrics", "Pediatrics"}','18','90000'),
+('Salma', 'Valente', '1973-06-16', 'F','{"Obstetrics", "General Medicine"}','20','80000'),
+('Sandra', 'Villanueva', '1972-07-17', 'F','{"Obstetrics", "General Medicine"}','20','88000'),
+('Susana', 'Villarreal', '1971-08-18', 'F','{"Traumatology", "General Medicine"}','21','85000');
 
+--Add works to doctors
 UPDATE doctor SET works = '1' WHERE pid = '12';
 UPDATE doctor SET works = '2' WHERE pid = '13';
 UPDATE doctor SET works = '3' WHERE pid = '14';
@@ -268,22 +260,24 @@ UPDATE doctor SET works = '5' WHERE pid = '16';
 UPDATE doctor SET works = '6' WHERE pid = '17';
 UPDATE doctor SET works = '7' WHERE pid = '18';
 UPDATE doctor SET works = '8' WHERE pid = '19';
+UPDATE doctor SET works = '1' WHERE pid = '20';
+UPDATE doctor SET works = '2' WHERE pid = '21';
+UPDATE doctor SET works = '3' WHERE pid = '22';
 
+--Add leader to area 
+update area set leaded_by = '12' where aid = '1';
+update area set leaded_by = '13' where aid = '2';
+update area set leaded_by = '14' where aid = '3';
+update area set leaded_by = '15' where aid = '4';
+update area set leaded_by = '16' where aid = '5';
+update area set leaded_by = '17' where aid = '6';
+update area set leaded_by = '18' where aid = '7';
 
 INSERT INTO treatment (duration, medicaments, description, received_by, prescribed_by)
 VALUES ('7', '{"Amoxicilin", "Ibuprofen"}','Cada 8 hrs por 7 días','2','12'),
 ('10', '{"Loratadine", "Ibuprofen"}','Cada 5 hrs por 3 días','4','13');
 
-/*INSERT INTO area (name, location, leaded_by)
-VALUES ('General Medicine','Area 1', '12');
-('Obstetrics','Area 1', '7'),
-('Traumatology','Area 1', '8'),
-('Allergology','Area 1', '9'),
-('Radiology','Area 1', '11'),
-('Cardiology','Area 1', '10'),
-('Gerontology','Area 1', '12'),
-('Pediatrics','Area 1', '13');
---Insert no valido
+/*--Insert no valido
 INSERT INTO treatment (duration, medicaments, description, received_by, prescribed_by)
 VALUES ('7', '{Amoxicilin, Ibuprofen}','Cada 8 hrs por 7 días','9','18');
 */
