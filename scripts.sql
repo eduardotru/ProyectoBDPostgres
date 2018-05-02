@@ -130,10 +130,23 @@ ROW WHEN (NEW.insurancePlan not in ('Unlimited', 'Premium', 'Basic'))
 execute procedure patient_Insurance();
 
 -- 4. Finished
-create rule "Doctor_Area" as
-on update to Doctor
-where (select leaded_by from area where aid = old.works) = new.pid and old.works <> new.works
-do instead select 'Area leader cannot change area without assigning a new area leader.';
+create function doctor_area() 
+returns trigger as $$ 
+begin   
+    if ((select leaded_by from area where aid = old.works) = new.pid and old.works <> new.works)
+        then
+        RAISE EXCEPTION 'Area leader cannot change area without assigning a new area leader.';
+        return null; 
+    end if; 
+    return new;
+end; $$  
+LANGUAGE plpgsql;
+
+create trigger "Doctor_Area"
+before update on Doctor 
+FOR EACH ROW
+execute procedure doctor_area();
+
 
 -- 5. Finished
 create function check_specialties() returns trigger as $$
@@ -172,7 +185,7 @@ execute procedure check_area();
 create function check_works_specialty() returns trigger as $$
 BEGIN
         if not (select name from area where aid = new.works) = Any(new.specialty) then
-            raise exception 'Doctor cannot work in an area that is not his specialty';
+            raise exception 'Doctor cannot work in an area that is not her/his specialty';
         end if;
         return new;
 END;
