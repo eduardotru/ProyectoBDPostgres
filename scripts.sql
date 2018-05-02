@@ -275,9 +275,15 @@ update area set leaded_by = '18' where aid = '7';
 
 INSERT INTO treatment (duration, medicaments, description, received_by, prescribed_by)
 VALUES ('7', '{"Amoxicilin", "Ibuprofen"}','Cada 8 hrs por 7 días','2','12'),
-('10', '{"Loratadine", "Ibuprofen"}','Cada 5 hrs por 3 días','4','13');
+('10', '{"Loratadine", "Ibuprofen"}','Cada 5 hrs por 3 días','4','13'),
+('5', '{"Hydrochlorothiazide", "Ibuprofen"}','Cada 8 hrs por 4 días','3','16');
 
-/*--Insert no valido
+/*--Inserts/updates no validos
 INSERT INTO treatment (duration, medicaments, description, received_by, prescribed_by)
 VALUES ('7', '{Amoxicilin, Ibuprofen}','Cada 8 hrs por 7 días','9','18');
+
+INSERT INTO patient (firstname, lastname, dob, gender, insuranceplan) 
+VALUES ('Alison', 'Canamar', '1996-12-26', 'F','Gordo');
+
+update doctor set works = '3' where pid = '13';
 */
