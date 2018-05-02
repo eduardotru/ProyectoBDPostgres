@@ -199,7 +199,7 @@ execute procedure check_works_specialty();
 -- 7. Finished
 create function check_premium_insurance() returns trigger as $$
 BEGIN
-        if (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid)  = 'Radiology' then
+        if (select insurancePlan from patient where pid = new.received_by) = 'Premium' and (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid)  = 'Radiology' then
             raise exception 'Premium insurance does not cover radiology treatment.';
         end if;
         return new;
@@ -215,7 +215,7 @@ execute procedure check_premium_insurance();
 
 create function check_basic_insurance() returns trigger as $$
 BEGIN
-        if (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) not in ('General Medicine', 'Obstetrics', 'Pediatrics') then
+        if (select insurancePlan from patient where pid = new.received_by) = 'Basic' and (select a.name from area a, doctor d where new.prescribed_by = d.pid and d.works = a.aid) not in ('General Medicine', 'Obstetrics', 'Pediatrics') then
             raise exception 'Basic insurance does not cover this treatment.';
         end if;
         return new;
